@@ -94,7 +94,7 @@ const PublicationsSection = React.memo(() => {
   return (
     <SectionWrapper
       id="publications"
-      className="flex flex-col items-center justify-center min-h-[100vh] py-20 z-10"
+      className="flex flex-col items-center justify-center min-h-[100vh] pt-96 pb-20 z-10"
     >
       <div className="w-full max-w-4xl px-4 md:px-8 mx-auto">
         <SectionHeader
@@ -245,8 +245,8 @@ const PublicationContents = ({
     [publication.skills]
   );
   return (
-  <>
-    <div className="flex justify-between items-start mb-6 gap-4">
+    <>
+      <div className="flex justify-between items-start mb-6 gap-4">
         <Badge
           variant="outline"
           className="border-purple-500/30 dark:border-purple-500/30 text-purple-600 dark:text-purple-400 shrink-0"
