@@ -1,7 +1,6 @@
 "use client";
 import { SocketContext, type User } from "@/contexts/socketio";
 import { useMouse } from "@/hooks/use-mouse";
-import { useThrottle } from "@/hooks/use-throttle";
 import { getAvatarUrl } from "@/lib/avatar";
 import { MousePointer2 } from "lucide-react";
 import React, { useContext, useEffect, useState } from "react";
@@ -14,10 +13,10 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 const RemoteCursors = () => {
   const { socket, users: _users, setUsers, focusedCursorId, setFocusedCursorId } = useContext(SocketContext);
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const { x, y } = useMouse({ allowPage: true });
+  const mouseRef = useMouse({ allowPage: true });
   useEffect(() => {
     if (typeof window === "undefined" || !socket || isMobile) return;
-    const onCursorChanged = (data: { socketId: string; pos: { x: number; y: number }; [key: string]: unknown }) => {
+    const onCursorChanged = (data: { socketId: string; pos: { x: number; y: number };[key: string]: unknown }) => {
       setUsers((prev: User[]) => {
         const newUsers = [...prev];
         const user = newUsers.find((u) => u.socketId === data.socketId);
@@ -40,17 +39,23 @@ const RemoteCursors = () => {
       socket.off("users-updated", onUsersUpdated);
     };
   }, [socket, isMobile]);
-  // Increase throttle for better performance
-  const handleMouseMove = useThrottle((x, y) => {
-    socket?.emit("cursor-change", {
-      pos: { x, y },
-      socketId: socket.id,
-    });
-  }, 300); // Increased from 200ms to 300ms
+
+  // Poll mouse ref and emit cursor changes at 300ms interval (no re-renders)
+  const lastEmitted = React.useRef({ x: 0, y: 0 });
   useEffect(() => {
-    if (isMobile) return;
-    handleMouseMove(x, y);
-  }, [x, y, isMobile]);
+    if (isMobile || !socket) return;
+    const interval = setInterval(() => {
+      const { x, y } = mouseRef;
+      if (x !== lastEmitted.current.x || y !== lastEmitted.current.y) {
+        lastEmitted.current = { x, y };
+        socket.emit("cursor-change", {
+          pos: { x, y },
+          socketId: socket.id,
+        });
+      }
+    }, 300);
+    return () => clearInterval(interval);
+  }, [socket, isMobile, mouseRef]);
 
   const users = Array.from(_users.values());
 
@@ -145,12 +150,10 @@ const Cursor = ({
         lastMsgContent.slice(0, 30) + (lastMsgContent.length > 30 ? "..." : "");
       const timeToRead = Math.max(4000, Math.max(textSlice.length * 100, 1000));
       setMsgText(textSlice);
-      // setShowText(true);
       const t = setTimeout(() => {
         setMsgText("");
-        clearTimeout(t);
-        // setShowText(false);
       }, timeToRead);
+      return () => clearTimeout(t);
     }
   }, [msgs]);
 

@@ -18,16 +18,22 @@ const EasterEggs = () => {
     //   "color: #00FF00; font-size: 16px; font-weight: bold; background-color: black; padding: 10px; border-radius: 10px;"
     // );
     if (typeof console !== "undefined") {
+      // Match site theme: dark bg, light text, purple accent, Inter font
+      const consoleStyle = {
+        base: "color: #e2e8f0; font-size: 15px; font-weight: 500; font-family: Inter, system-ui, sans-serif; background: #0f1420; padding: 12px 16px; border-radius: 8px; border: 1px solid #1e293b; line-height: 1.6",
+        accent: "color: #a78bfa; font-size: 15px; font-weight: 600; font-family: Inter, system-ui, sans-serif; background: #0f1420; padding: 12px 16px; border-radius: 8px; border: 1px solid #1e293b",
+        highlight: "color: #c4b5fd; font-size: 16px; font-weight: 600; font-family: Inter, system-ui, sans-serif; background: #0f1420; padding: 12px 16px; border-radius: 8px; border: 1px solid #334155",
+        muted: "color: #94a3b8; font-size: 15px; font-weight: 500; font-family: Inter, system-ui, sans-serif; background: #0f1420; padding: 12px 16px; border-radius: 8px; border: 1px solid #1e293b; line-height: 1.6",
+      };
       console.clear();
       console.log(
         "%cWhoa, look at you! 🕵️‍♂️\n" +
           "You seem to have discovered the secret console! 🔍\n" +
           "Want to see some magic? ✨\n" +
-          "Just type %cSagar%c and hit enter! 🎩🐇",
-        //   "Just press the %c'n'%c key and watch the magic happen! 🪄",
-        "color: #FFD700; font-size: 16px; font-weight: bold; background-color: black; padding: 10px; border-radius: 10px; margin-top:20px",
-        "color: #00FF00; font-size: 16px; font-weight: bold; background-color: black; padding: 10px; border-radius: 10px; margin-top:20px",
-        "color: #FFD700; font-size: 16px; font-weight: bold; background-color: black; padding: 10px; border-radius: 10px;"
+          "Just type %c'Sagar'%c and hit enter! 🎩🐇",
+        consoleStyle.base,
+        consoleStyle.accent,
+        consoleStyle.base
       );
 
       ["sagar", "Sagar", "SAGAR"].forEach((name) => {
@@ -36,21 +42,20 @@ const EasterEggs = () => {
         Object.defineProperty(window, name, {
           get() {
             console.log(
-              "%c✨ Abra Kadabra! ✨\n\n" +
+              "%c✨ Abra Kadabra! ✨\n" +
                 "You just summoned the magic of Sagar! 🧙‍♂️\n" +
                 "What??? youre not impressed? Fine, but remember: With great power comes great responsibility! 💻⚡",
-
-              "color: #FF4500; font-size: 18px; font-weight: bold; background-color: black; padding: 10px; border-radius: 10px; margin-top:10px"
+              consoleStyle.highlight
             );
 
             const timer = setTimeout(() => {
               console.log(
-                "%cPssttt! 🤫\n\n" +
-                  "Do you like cats?? 😺 If yes, then press 'n' on viewport and see what happens! 🐱✨",
-                "color: #FF69B4; font-size: 16px; font-weight: bold; background-color: black; padding: 10px; border-radius: 10px;"
+                "%cPssttt! 🤫\n" +
+                  "Do you like cats?? 😺 If yes, then close this window and press 'n' see what happens! 🐱✨",
+                consoleStyle.muted
               );
               clearTimeout(timer);
-            }, 7000);
+            }, 2000);
             return "";
           },
         });

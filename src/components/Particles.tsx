@@ -22,18 +22,17 @@ export default function Particles({
   // Reduce particle count on mobile/low-end devices
   const effectiveQuantity = useMemo(() => {
     if (typeof window === "undefined") return quantity;
-    const isLowEndDevice = navigator.hardwareConcurrency <= 4 || 
-                           (navigator as any).deviceMemory <= 4;
+    const isLowEndDevice = navigator.hardwareConcurrency <= 4 ||
+      (navigator as any).deviceMemory <= 4;
     const isMobileDevice = window.innerWidth < 768;
     return (isLowEndDevice || isMobileDevice) ? Math.floor(quantity * 0.6) : quantity;
   }, [quantity]);
   // Frame rate limiting - only animate when visible and reduce frame rate on low-end devices
   const [isVisible, setIsVisible] = useState(true);
-  const frameSkipRef = useRef(0);
   const targetFPS = useMemo(() => {
     if (typeof window === "undefined") return 60;
-    const isLowEndDevice = navigator.hardwareConcurrency <= 4 || 
-                           (navigator as any).deviceMemory <= 4;
+    const isLowEndDevice = navigator.hardwareConcurrency <= 4 ||
+      (navigator as any).deviceMemory <= 4;
     return isLowEndDevice ? 30 : 60; // 30 FPS for low-end, 60 for high-end
   }, []);
 
@@ -44,13 +43,18 @@ export default function Particles({
   const mousePosition = useMousePosition();
   const mouse = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const canvasSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
+  const canvasRectRef = useRef<DOMRect | null>(null);
+  const isVisibleRef = useRef(true);
   const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1; // Cap DPR at 2 for performance
 
   // IntersectionObserver to pause when off-screen
   useEffect(() => {
     if (typeof window === "undefined" || !canvasContainerRef.current) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+        setIsVisible(entry.isIntersecting);
+      },
       { threshold: 0, rootMargin: "50px" }
     );
     observer.observe(canvasContainerRef.current);
@@ -81,6 +85,8 @@ export default function Particles({
       canvasRef.current.style.width = `${canvasSize.current.w}px`;
       canvasRef.current.style.height = `${canvasSize.current.h}px`;
       context.current.scale(dpr, dpr);
+      // Update cached rect on resize
+      canvasRectRef.current = canvasRef.current.getBoundingClientRect();
     }
   };
 
@@ -163,22 +169,40 @@ export default function Particles({
   };
 
   // Define animate before useEffect that uses it
+  const lastFrameTimeRef = useRef(0);
   const animate = useCallback(() => {
-    if (!context.current || !isVisible) return;
-    
-    // Frame rate limiting
-    frameSkipRef.current++;
-    const skipFrames = Math.floor(60 / targetFPS);
-    if (frameSkipRef.current % skipFrames !== 0) {
+    if (!context.current || !isVisibleRef.current) return;
+
+    // Timestamp-based frame rate limiting
+    const now = performance.now();
+    const frameInterval = 1000 / targetFPS;
+    if (now - lastFrameTimeRef.current < frameInterval) {
       return;
     }
-    
+    lastFrameTimeRef.current = now;
+
+    // Read mouse position from mutable ref (zero re-renders)
+    // Use cached rect instead of per-frame getBoundingClientRect
+    if (canvasRef.current) {
+      const rect = canvasRectRef.current;
+      if (rect) {
+        const { w, h } = canvasSize.current;
+        const mx = mousePosition.x - rect.left - w / 2;
+        const my = mousePosition.y - rect.top - h / 2;
+        const inside = mx < w / 2 && mx > -w / 2 && my < h / 2 && my > -h / 2;
+        if (inside) {
+          mouse.current.x = mx;
+          mouse.current.y = my;
+        }
+      }
+    }
+
     clearContext();
-    
+
     // Batch operations for better performance
     const circlesToUpdate: Circle[] = [];
     const circlesToRemove: number[] = [];
-    
+
     circles.current.forEach((circle: Circle, i: number) => {
       // Handle the alpha value - simplified calculation
       const edge = [
@@ -189,13 +213,13 @@ export default function Particles({
       ];
       const closestEdge = Math.min(...edge);
       const remapClosestEdge = Math.min(Math.max(remapValue(closestEdge, 0, 20, 0, 1), 0), 1);
-      
+
       if (remapClosestEdge >= 1) {
         circle.alpha = Math.min(circle.alpha + 0.02, circle.targetAlpha);
       } else {
         circle.alpha = circle.targetAlpha * remapClosestEdge;
       }
-      
+
       // Update position
       circle.x += circle.dx;
       circle.y += circle.dy;
@@ -205,7 +229,7 @@ export default function Particles({
       circle.translateY +=
         (mouse.current.y / (staticity / circle.magnetism) - circle.translateY) /
         ease;
-      
+
       // Check if out of bounds
       if (
         circle.x < -circle.size ||
@@ -218,39 +242,37 @@ export default function Particles({
         circlesToUpdate.push(circle);
       }
     });
-    
+
     // Remove circles that went out of bounds (in reverse to maintain indices)
     circlesToRemove.reverse().forEach(idx => {
       circles.current.splice(idx, 1);
       const newCircle = circleParams();
       drawCircle(newCircle);
     });
-    
+
     // Batch draw all circles
     circlesToUpdate.forEach(circle => {
       drawCircle(circle, true);
     });
-  }, [isVisible, targetFPS, staticity, ease]);
+  }, [targetFPS, staticity, ease, mousePosition]);
 
   useEffect(() => {
     if (canvasRef.current) {
       context.current = canvasRef.current.getContext("2d", { alpha: true, desynchronized: true });
     }
     initCanvas();
-    
+
     let animationId: number;
     const startAnimation = () => {
       const frame = () => {
-        if (isVisible) {
-          animate();
-        }
+        animate();
         animationId = requestAnimationFrame(frame);
       };
       animationId = requestAnimationFrame(frame);
     };
-    
+
     startAnimation();
-    
+
     // Throttle resize handler
     let resizeTimeout: NodeJS.Timeout;
     const handleResize = () => {
@@ -266,34 +288,11 @@ export default function Particles({
       if (animationId) cancelAnimationFrame(animationId);
       clearTimeout(resizeTimeout);
     };
-  }, [isVisible, animate]);
-
-  // Throttle mouse move updates
-  const lastMouseUpdate = useRef(0);
-  useEffect(() => {
-    const now = Date.now();
-    if (now - lastMouseUpdate.current < 16) return; // ~60fps max
-    lastMouseUpdate.current = now;
-    onMouseMove();
-  }, [mousePosition.x, mousePosition.y]);
+  }, [animate]);
 
   useEffect(() => {
     initCanvas();
   }, [refresh]);
-
-  const onMouseMove = () => {
-    if (canvasRef.current) {
-      const rect = canvasRef.current.getBoundingClientRect();
-      const { w, h } = canvasSize.current;
-      const x = mousePosition.x - rect.left - w / 2;
-      const y = mousePosition.y - rect.top - h / 2;
-      const inside = x < w / 2 && x > -w / 2 && y < h / 2 && y > -h / 2;
-      if (inside) {
-        mouse.current.x = x;
-        mouse.current.y = y;
-      }
-    }
-  };
 
   return (
     <div

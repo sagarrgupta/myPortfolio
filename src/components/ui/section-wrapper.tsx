@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React, { useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface SectionWrapperProps extends React.HTMLAttributes<HTMLElement> {
@@ -10,14 +9,23 @@ interface SectionWrapperProps extends React.HTMLAttributes<HTMLElement> {
 
 const SectionWrapper = React.memo(({ id, className, children, ...props }: SectionWrapperProps) => {
   const containerRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"],
-    layoutEffect: false, // Use effect instead of layoutEffect for better performance
-  });
+  const [isVisible, setIsVisible] = useState(false);
 
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.8, 1, 1, 0.8]);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
     <section
@@ -26,12 +34,14 @@ const SectionWrapper = React.memo(({ id, className, children, ...props }: Sectio
       className={cn("relative", className)}
       {...props}
     >
-      <motion.div
-        style={{ opacity, scale }}
-        className="w-full h-full"
+      <div
+        className={cn(
+          "w-full h-full transition-all duration-700 ease-out",
+          isVisible ? "opacity-100 scale-100" : "opacity-0 scale-[0.97]"
+        )}
       >
         {children}
-      </motion.div>
+      </div>
     </section>
   );
 });

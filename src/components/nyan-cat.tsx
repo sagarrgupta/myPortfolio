@@ -1,12 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
-import {
-  AnimatePresence,
-  motion,
-  animate,
-  useAnimationControls,
-} from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 
 const getRandomHeight = () => {
   return `${Math.random() * 100}vh`;
@@ -34,15 +29,10 @@ const NyanCat = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  });
+  }, []);
 
   return (
     <div className="fixed left-0 top-0 w-screen h-screen overflow-hidden z-[5] pointer-events-none">
-      <AnimatePresence>
-        {divs.length > 0 && (
-          <div className="fixed w-screen flex left-0 top-16">{divs.length}</div>
-        )}
-      </AnimatePresence>
       {divs &&
         divs.map((div) => (
           <AnimatedDiv
@@ -50,7 +40,7 @@ const NyanCat = () => {
             id={div.id}
             onClick={() => console.log("clicked")}
             onCompleted={() => {
-              setDivs(divs.filter((d) => d.id !== div.id));
+              setDivs(prev => prev.filter((d) => d.id !== div.id));
             }}
           />
         ))}

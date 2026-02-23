@@ -19,15 +19,11 @@ import SectionWrapper from "../ui/section-wrapper";
 
 const ProjectsSection = () => {
   return (
-    <SectionWrapper id="projects" className="max-w-7xl mx-auto md:h-[130vh] relative overflow-visible">
+    <SectionWrapper id="projects" className="max-w-7xl mx-auto md:h-[130vh] relative overflow-visible pt-44 md:pt-64">
       <div className="relative z-10">
-        <SectionHeader id="projects" title="Projects" className="px-4 md:px-6" compactShadow />
+        <SectionHeader id="projects" title="Projects" className="px-4 md:px-6 mb-44 md:mb-64" compactShadow />
         {/* Equal margin on all sides so tile-to-edge distance is same top/bottom/left/right */}
-        <div className="relative m-4 md:m-6">
-          <div
-            className="absolute inset-0 z-0 rounded-2xl bg-white/30 dark:bg-black/30 backdrop-blur-md pointer-events-auto"
-            aria-hidden
-          />
+        <div className="relative mx-4 md:mx-6 bg-white/10 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/20 dark:border-white/10 shadow-xl overflow-hidden pointer-events-auto">
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-0 p-4 md:p-6">
             {projects.map((project, index) => (
               <ProjectCardModal key={project.id || project.title || index} project={project} />
@@ -61,8 +57,8 @@ const ProjectCardModal = React.memo(({ project }: { project: Project }) => {
   const { resolvedTheme } = useTheme();
   const coverSrc = resolvedTheme === "light" && project.srcLight ? project.srcLight : project.src;
   return (
-<div className="w-full">
-        <Modal>
+    <div className="w-full">
+      <Modal>
         <ModalTrigger className="bg-transparent flex justify-center group/modal-btn w-full">
           <div
             className="relative w-full min-w-[100px] h-auto rounded-lg shadow-lg"
