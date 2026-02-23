@@ -22,7 +22,7 @@ const Email = z.object({
     .transform((s) => sanitize(s.trim().toLowerCase())),
   message: z
     .string()
-    .min(10, "Message is too short!")
+    .min(2, "Message is too short!")
     .max(1000, "Message must be 1000 characters or less.")
     .transform((s) => sanitize(s.trim())),
 });

@@ -66,6 +66,7 @@ export default function Body({
             href={href}
             target={target}
             className="cursor-can-hover rounded-lg"
+            onClick={() => setIsActive(false)}
           >
             <motion.p
               className={cn(

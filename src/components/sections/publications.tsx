@@ -278,7 +278,7 @@ const PublicationContents = ({
       <TypographyP className="font-mono">
         {publication.description}
       </TypographyP>
-      <div className="flex flex-col md:flex-row items-center justify-start">
+      <div className="flex flex-col md:flex-row items-center justify-start gap-3">
         <Link
           className="font-mono underline flex gap-2"
           href={publication.link}

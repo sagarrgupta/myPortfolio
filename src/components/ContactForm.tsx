@@ -1,40 +1,41 @@
 "use client";
-import { Check, ChevronRight, Loader2 } from "lucide-react";
-import React, { useRef, useEffect } from "react";
+import { ChevronRight, Loader2 } from "lucide-react";
+import React from "react";
 import { Label } from "./ui/label";
 import { Input } from "./ui/ace-input";
 import { Textarea } from "./ui/ace-textarea";
 import { cn } from "@/lib/utils";
 import { useToast } from "./ui/use-toast";
 import { Button } from "./ui/button";
-import { useRouter } from "next/navigation";
 
 const MESSAGE_MAX_LENGTH = 1000;
+const MESSAGE_MIN_LENGTH = 2;
 
 const ContactForm = () => {
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [message, setMessage] = React.useState("");
   const [loading, setLoading] = React.useState(false);
-  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { toast } = useToast();
-  const router = useRouter();
-
-  useEffect(() => {
-    return () => {
-      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const trimmedMessage = message.trim();
+    if (trimmedMessage.length < MESSAGE_MIN_LENGTH) {
+      toast({
+        title: "Message too short",
+        description: `Please enter at least ${MESSAGE_MIN_LENGTH} characters.`,
+        variant: "destructive",
+      });
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
         fullName: fullName.trim().replace(/\0/g, "").slice(0, 200),
         email: email.trim().toLowerCase().replace(/\0/g, "").slice(0, 254),
-        message: message.trim().replace(/\0/g, "").slice(0, MESSAGE_MAX_LENGTH),
+        message: trimmedMessage.replace(/\0/g, "").slice(0, MESSAGE_MAX_LENGTH),
       };
       const res = await fetch("/api/send", {
         method: "POST",
@@ -49,25 +50,16 @@ const ContactForm = () => {
         title: "Thank you!",
         description: "I'll get back to you as soon as possible.",
         variant: "default",
-        className: cn("top-0 mx-auto flex fixed md:top-4 md:right-4"),
       });
       setLoading(false);
       setFullName("");
       setEmail("");
       setMessage("");
-      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
-      redirectTimerRef.current = setTimeout(() => {
-        router.push("/");
-        redirectTimerRef.current = null;
-      }, 1000);
     } catch (err) {
       const description = err instanceof Error ? err.message : "Something went wrong! Please check the fields.";
       toast({
         title: "Error",
         description,
-        className: cn(
-          "top-0 w-full flex justify-center fixed md:max-w-7xl md:top-4 md:right-4"
-        ),
         variant: "destructive",
       });
     }
@@ -106,6 +98,7 @@ const ContactForm = () => {
             placeholder="I would like to discuss a job opportunity with you... 😉"
             id="content"
             required
+            minLength={MESSAGE_MIN_LENGTH}
             maxLength={MESSAGE_MAX_LENGTH}
             value={message}
             onChange={(e) => setMessage(e.target.value.slice(0, MESSAGE_MAX_LENGTH))}
