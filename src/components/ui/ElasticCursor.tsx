@@ -1,7 +1,3 @@
-/**
- * Disclaimer: This component is not entirely my own
- */
-
 "use client";
 import React, {
   useCallback,

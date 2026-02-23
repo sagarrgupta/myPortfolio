@@ -81,9 +81,9 @@ const HeroSection = React.memo(() => {
                     </TooltipTrigger>
                     <TooltipContent
                       side="top"
-                      className="dark:bg-white dark:text-black"
+                      className="dark:bg-white dark:text-black -translate-x-[13px]"
                     >
-                      There is something waiting for you in DevTools
+                      There is something waiting for you in DevTools <br /> (Developer Tools -&gt; Console)
                     </TooltipContent>
                   </Tooltip>
                 </BlurIn>
