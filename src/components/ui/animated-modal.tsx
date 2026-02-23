@@ -11,6 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalContextType {
   open: boolean;
@@ -138,7 +139,11 @@ export const ModalBody = ({
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
   useOutsideClick(modalRef, handleClose);
 
-  return (
+  // Portal to document.body so the modal is always positioned relative to the
+  // viewport, not the Lenis smooth-scroll container which applies transforms.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -147,11 +152,9 @@ export const ModalBody = ({
           }}
           animate={{
             opacity: 1,
-            backdropFilter: "blur(10px)",
           }}
           exit={{
             opacity: 0,
-            backdropFilter: "blur(0px)",
           }}
           className={cn(
             "modall fixed [perspective:800px] [transform-style:preserve-3d] inset-0 h-full w-full flex justify-center overflow-hidden p-4 md:p-6 md:pt-8",
@@ -169,8 +172,8 @@ export const ModalBody = ({
           <motion.div
             ref={modalRef}
             className={cn(
-              "w-full flex flex-col bg-white dark:bg-neutral-950 border border-transparent dark:border-neutral-800 md:rounded-2xl relative z-[60] rounded-t-2xl",
-              "h-[70vh] md:h-[75vh] md:max-w-[40%] min-h-0 overflow-hidden",
+              "w-full flex flex-col bg-white dark:bg-neutral-950 border border-transparent dark:border-neutral-800 md:rounded-2xl relative z-[60] rounded-2xl",
+              "h-[85vh] md:h-[75vh] md:max-w-[40%] min-h-0 overflow-hidden",
               className
             )}
             initial={{
@@ -209,7 +212,8 @@ export const ModalBody = ({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
@@ -221,7 +225,7 @@ export const ModalContent = ({
   className?: string;
 }) => {
   return (
-    <div className={cn("flex flex-col min-h-0 p-3 md:p-10 pt-14 md:pt-14 pr-12 md:pr-10 shrink-0", className)}>
+    <div className={cn("flex flex-col min-h-0 p-3 md:p-10 pt-14 md:pt-14 pr-12 md:pr-10 shrink-0 overscroll-contain", className)}>
       {children}
     </div>
   );

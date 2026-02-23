@@ -1,39 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface MousePosition {
 	x: number;
 	y: number;
 }
 
+/**
+ * High-performance mouse position hook.
+ * Returns a stable ref object that is mutated in place — zero React re-renders.
+ * Consumers should read from the object inside an animation loop.
+ */
 export function useMousePosition(): MousePosition {
-	const [mousePosition, setMousePosition] = useState<MousePosition>({
-		x: 0,
-		y: 0,
-	});
+	const pos = useRef<MousePosition>({ x: 0, y: 0 });
 
 	useEffect(() => {
-		let rafId: number;
-		let lastUpdate = 0;
-		
 		const handleMouseMove = (event: MouseEvent) => {
-			const now = performance.now();
-			// Throttle to ~60fps max
-			if (now - lastUpdate < 16) return;
-			lastUpdate = now;
-			
-			if (rafId) cancelAnimationFrame(rafId);
-			rafId = requestAnimationFrame(() => {
-				setMousePosition({ x: event.clientX, y: event.clientY });
-			});
+			pos.current.x = event.clientX;
+			pos.current.y = event.clientY;
 		};
 
 		window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
-		return () => {
-			window.removeEventListener("mousemove", handleMouseMove);
-			if (rafId) cancelAnimationFrame(rafId);
-		};
+		return () => window.removeEventListener("mousemove", handleMouseMove);
 	}, []);
 
-	return mousePosition;
+	return pos.current;
 }

@@ -11,24 +11,19 @@ import { cn } from "@/lib/utils";
 import { usePreloader } from "../preloader";
 import { useMediaQuery } from "@/hooks/use-media-query";
 
-// Gsap Ticker Function with frame rate limiting
-function useTicker(callback: any, paused: boolean) {
-  const frameSkipRef = React.useRef(0);
+// Gsap Ticker — runs at native refresh rate for buttery-smooth animation
+function useTicker(callback: () => void, paused: boolean) {
+  const cbRef = useRef(callback);
+  cbRef.current = callback;
+
   useEffect(() => {
-    if (!paused && callback) {
-      const throttledCallback = () => {
-        frameSkipRef.current++;
-        // Limit to ~30fps for cursor animation
-        if (frameSkipRef.current % 2 === 0) {
-          callback();
-        }
-      };
-      gsap.ticker.add(throttledCallback);
-      return () => {
-        gsap.ticker.remove(throttledCallback);
-      };
-    }
-  }, [callback, paused]);
+    if (paused) return;
+    const tick = () => cbRef.current();
+    gsap.ticker.add(tick);
+    return () => {
+      gsap.ticker.remove(tick);
+    };
+  }, [paused]);
 }
 
 const EMPTY = {} as Record<string, any>;
@@ -40,18 +35,17 @@ function useInstance(value = {}) {
   return ref.current;
 }
 
-// Function for Mouse Move Scale Change
+// Fast math helpers — avoid Math.pow overhead
 function getScale(diffX: number, diffY: number) {
-  const distance = Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY, 2));
+  const distance = Math.sqrt(diffX * diffX + diffY * diffY);
   return Math.min(distance / 735, 0.35);
 }
 
-// Function For Mouse Movement Angle in Degrees
 function getAngle(diffX: number, diffY: number) {
   return (Math.atan2(diffY, diffX) * 180) / Math.PI;
 }
 
-/** Returns the element that has cursor-can-hover (self or nearest ancestor), or null. */
+/** Walk up from `el` to find nearest `.cursor-can-hover` ancestor. */
 function getCursorHoverElement(el: HTMLElement | null): HTMLElement | null {
   let node: HTMLElement | null = el;
   while (node) {
@@ -67,20 +61,29 @@ function ElasticCursor() {
   const { loadingPercent, isLoading } = usePreloader();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // React Refs for Jelly Blob and Text
+  // DOM refs
   const jellyRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
-  const [isCrispOverlay, setIsCrispOverlay] = useState(false);
+
+  // ---- HOT-PATH FLAGS: refs instead of state to avoid React re-renders ----
+  const isHoveringRef = useRef(false);
+  const isHiddenRef = useRef(false);
+  const isCrispOverlayRef = useRef(false);
+  const hoveredRef = useRef(false);
+  const lastHoverEl = useRef<HTMLElement | null>(null);
+  const movedOnceRef = useRef(false);
+
   const lastMouseRef = useRef({ x: 0, y: 0 });
 
-  // Save pos and velocity Objects
+  // Mutable pos / vel objects — never trigger renders
   const pos = useInstance(() => ({ x: 0, y: 0 }));
   const vel = useInstance(() => ({ x: 0, y: 0 }));
   const set = useInstance();
 
-  // Set GSAP quick setter Values on useLayoutEffect Update
+  // One-shot state for "cursor has moved at least once" (gate for ticker start)
+  const [cursorMoved, setCursorMoved] = useState(false);
+
+  // GSAP quick-setters — set once, reused every frame
   useLayoutEffect(() => {
     set.x = gsap.quickSetter(jellyRef.current, "x", "px");
     set.y = gsap.quickSetter(jellyRef.current, "y", "px");
@@ -89,23 +92,43 @@ function ElasticCursor() {
     set.sy = gsap.quickSetter(jellyRef.current, "scaleY");
     set.width = gsap.quickSetter(jellyRef.current, "width", "px");
     set.height = gsap.quickSetter(jellyRef.current, "height", "px");
-    set.opacity = gsap.quickSetter([jellyRef.current, dotRef.current], "opacity");
+    set.opacity = gsap.quickSetter(
+      [jellyRef.current, dotRef.current],
+      "opacity"
+    );
   }, []);
 
-  // Start Animation loop - optimized with memoization
+  // ---- RENDER LOOP (runs every frame via gsap.ticker) ----
   const loop = useCallback(() => {
     if (!set.width || !set.sx || !set.sy || !set.r) return;
 
+    // Update dot position directly — no React state involved
     const dot = dotRef.current;
     if (dot) {
       dot.style.left = lastMouseRef.current.x + "px";
       dot.style.top = lastMouseRef.current.y + "px";
     }
 
-    // Only calculate if needed
-    if (!isHovering && !isLoading) {
-      const rotation = getAngle(+vel.x, +vel.y);
-      const scale = getScale(+vel.x, +vel.y);
+    // Apply crisp-overlay style change via direct DOM mutation (not React)
+    const jelly = jellyRef.current;
+    if (jelly) {
+      if (isCrispOverlayRef.current) {
+        jelly.style.background = "hsl(0 0% 100%)";
+        jelly.style.mixBlendMode = "difference";
+        jelly.style.border = "2px solid hsl(0 0% 100% / 0.9)";
+        jelly.style.backdropFilter = "none";
+      } else {
+        jelly.style.background = "";
+        jelly.style.mixBlendMode = "";
+        jelly.style.border = "";
+        jelly.style.backdropFilter = "invert(100%)";
+      }
+    }
+
+    // Elastic jelly blob transform
+    if (!isHoveringRef.current && !isLoading) {
+      const rotation = getAngle(vel.x, vel.y);
+      const scale = getScale(vel.x, vel.y);
 
       set.x(pos.x);
       set.y(pos.y);
@@ -117,83 +140,74 @@ function ElasticCursor() {
       set.r(0);
     }
 
-    set.opacity?.(isHidden ? 0 : 1);
-  }, [isHovering, isLoading, isHidden, pos, vel, set]);
+    set.opacity?.(isHiddenRef.current ? 0 : 1);
+  }, [isLoading, pos, vel, set]);
 
-  const loopRef = useRef(loop);
-  loopRef.current = loop;
-  const hoveredRef = useRef(false);
-  const movedOnceRef = useRef(false);
-
-  const [cursorMoved, setCursorMoved] = useState(false);
-  const lastMouseMoveTime = useRef(0);
-  const rafId = useRef<number>();
-
-  // Run on Mouse Move with throttling - stable deps so we don't re-subscribe on every hover change
+  // ---- MOUSE MOVE HANDLER (passive, zero React state on hot path) ----
   useLayoutEffect(() => {
     if (isMobile) return;
 
     const setFromEvent = (e: MouseEvent) => {
-      const now = performance.now();
-      if (now - lastMouseMoveTime.current < 16) return;
-      lastMouseMoveTime.current = now;
-
       const x = e.clientX;
       const y = e.clientY;
-      lastMouseRef.current = { x, y };
-
-      const dot = dotRef.current;
-      if (dot) {
-        dot.style.left = x + "px";
-        dot.style.top = y + "px";
-      }
+      lastMouseRef.current.x = x;
+      lastMouseRef.current.y = y;
 
       if (!jellyRef.current) return;
+
+      // Gate: fire setCursorMoved(true) exactly once
       if (!movedOnceRef.current) {
         movedOnceRef.current = true;
         setCursorMoved(true);
       }
 
+      // Hover detection — only getBoundingClientRect when hover target changes
       const el = e.target as HTMLElement;
       const hoverEl = getCursorHoverElement(el);
-      const isOverHeader = !!hoverEl?.closest("[data-cursor-crisp]");
-      setIsCrispOverlay(isOverHeader);
+      isCrispOverlayRef.current = !!hoverEl?.closest("[data-cursor-crisp]");
 
       if (hoverEl) {
-        hoveredRef.current = true;
+        const isNewHover = !hoveredRef.current || lastHoverEl.current !== hoverEl;
+        if (isNewHover) {
+          hoveredRef.current = true;
+          lastHoverEl.current = hoverEl;
+          isHoveringRef.current = true;
+          gsap.to(jellyRef.current, {
+            rotate: 0,
+            duration: 0,
+          });
+        }
+        // Always re-read rect — element may be mid-animation (e.g. menu opening)
         const rect = hoverEl.getBoundingClientRect();
-        setIsHovering(true);
-        gsap.to(jellyRef.current, {
-          rotate: 0,
-          duration: 0,
-        });
         gsap.to(jellyRef.current, {
           width: rect.width + 20,
           height: rect.height + 20,
           x: rect.left + rect.width / 2,
           y: rect.top + rect.height / 2,
           borderRadius: 10,
+          duration: isNewHover ? 0.25 : 0.15,
+          ease: "power2.out",
+          overwrite: true,
+        });
+      } else if (hoveredRef.current) {
+        hoveredRef.current = false;
+        lastHoverEl.current = null;
+        isHoveringRef.current = false;
+        gsap.to(jellyRef.current, {
+          borderRadius: 50,
+          width: CURSOR_DIAMETER,
+          height: CURSOR_DIAMETER,
           duration: 0.25,
           ease: "power2.out",
         });
-      } else {
-        if (hoveredRef.current) {
-          hoveredRef.current = false;
-          gsap.to(jellyRef.current, {
-            borderRadius: 50,
-            width: CURSOR_DIAMETER,
-            height: CURSOR_DIAMETER,
-            duration: 0.25,
-            ease: "power2.out",
-          });
-          setIsHovering(false);
-        }
       }
 
+      // Custom-cursor hide (e.g. over inputs)
       const shouldHide = !!el.closest('[data-no-custom-cursor="true"]');
-      setIsHidden(shouldHide);
-      if (shouldHide) document.body.style.cursor = "auto";
+      isHiddenRef.current = shouldHide;
+      document.body.style.cursor = shouldHide ? "auto" : "";
 
+      // Smooth position tween — velocity is derived inside onUpdate
       gsap.to(pos, {
         x,
         y,
@@ -201,30 +215,31 @@ function ElasticCursor() {
         ease: "power2.out",
         overwrite: true,
         onUpdate: () => {
-          (vel as { x: number; y: number }).x = (x - pos.x) * 1.2;
-          (vel as { x: number; y: number }).y = (y - pos.y) * 1.2;
+          vel.x = (x - pos.x) * 1.2;
+          vel.y = (y - pos.y) * 1.2;
         },
       });
-
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-      rafId.current = requestAnimationFrame(() => loopRef.current());
     };
 
-    if (!isLoading) window.addEventListener("mousemove", setFromEvent, { passive: true });
+    if (!isLoading)
+      window.addEventListener("mousemove", setFromEvent, { passive: true });
     return () => {
       if (!isLoading) window.removeEventListener("mousemove", setFromEvent);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
+      document.body.style.cursor = "";
+      // Kill any in-flight GSAP tween on the pos object
+      gsap.killTweensOf(pos);
     };
-  }, [isLoading, isMobile]);
+  }, [isLoading, isMobile, pos, vel]);
 
+  // Loading-bar width sync
   useEffect(() => {
     if (!jellyRef.current) return;
-    jellyRef.current.style.height = "2rem"; // "8rem";
+    jellyRef.current.style.height = "2rem";
     jellyRef.current.style.borderRadius = "1rem";
     jellyRef.current.style.width = loadingPercent * 2 + "vw";
   }, [loadingPercent]);
 
-  // Reset jelly to default circle when loading finishes (prevents pill shape on initial load)
+  // Reset jelly to circle after loading finishes
   useEffect(() => {
     if (isLoading || !jellyRef.current) return;
     const el = jellyRef.current;
@@ -233,10 +248,10 @@ function ElasticCursor() {
     el.style.borderRadius = "50px";
   }, [isLoading]);
 
+  // Start ticker only after first move, not while loading, never on mobile
   useTicker(loop, isLoading || !cursorMoved || isMobile);
   if (isMobile) return null;
 
-  // Return UI
   return (
     <>
       <div
@@ -249,14 +264,7 @@ function ElasticCursor() {
         )}
         style={{
           zIndex: 10051,
-          ...(isCrispOverlay
-            ? {
-                background: "hsl(0 0% 100%)",
-                mixBlendMode: "difference",
-                border: "2px solid hsl(0 0% 100% / 0.9)",
-                backdropFilter: "none",
-              }
-            : { backdropFilter: "invert(100%)" }),
+          backdropFilter: "invert(100%)",
         }}
       ></div>
       <div

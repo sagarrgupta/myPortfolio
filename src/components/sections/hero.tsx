@@ -42,10 +42,10 @@ const HeroSection = React.memo(() => {
       <div className="grid md:grid-cols-2">
         <div
           className={cn(
-            "h-[calc(100dvh-3rem)] md:h-[calc(100dvh-4rem)] z-[2]",
+            "min-h-[calc(100dvh-3rem)] md:h-[calc(100dvh-4rem)] z-[2]",
             "col-span-1",
             "flex flex-col justify-start md:justify-center items-center md:items-start",
-            "pt-28 sm:pb-16 md:p-20 lg:p-24 xl:p-28"
+            "pt-28 pb-20 px-6 md:pb-16 md:p-20 lg:p-24 xl:p-28"
           )}
         >
           {!isLoading && (
@@ -72,6 +72,8 @@ const HeroSection = React.memo(() => {
                           "font-thin text-7xl md:text-7xl lg:text-8xl xl:text-9xl",
                           "cursor-default text-edge-outline font-display "
                         )}
+                        // Disable tooltip on touch devices to prevent long-press context menus
+                        style={{ WebkitTouchCallout: "none" }}
                       >
                         {config.author.split(" ")[0]}
                         <span className="md:hidden"> </span>
@@ -79,9 +81,10 @@ const HeroSection = React.memo(() => {
                         {config.author.split(" ")[1]}
                       </h1>
                     </TooltipTrigger>
+                    {/* Hide tooltip on mobile, it requires long press which is bad UX */}
                     <TooltipContent
                       side="top"
-                      className="dark:bg-white dark:text-black -translate-x-[13px]"
+                      className="dark:bg-white dark:text-black -translate-x-[13px] hidden md:block"
                     >
                       There is something waiting for you in DevTools <br /> (Developer Tools -&gt; Console)
                     </TooltipContent>
@@ -92,7 +95,7 @@ const HeroSection = React.memo(() => {
                   <p
                     className={cn(
                       "md:self-start md:mt-4 font-thin text-md text-slate-500 dark:text-zinc-400",
-                      "cursor-default font-display sm:text-xl md:text-xl whitespace-nowrap bg-clip-text "
+                      "cursor-default font-display sm:text-xl md:text-xl max-w-[250px] md:max-w-none break-words bg-clip-text "
                     )}
                   >
                     AI/ML & iOS Engineer

@@ -3,7 +3,7 @@ import { SectionHeader } from "./section-header";
 
 const SkillsSection = () => {
   return (
-    <SectionWrapper id="skills" className="w-full h-screen md:h-[calc(75dvh+100px)] pointer-events-none">
+    <SectionWrapper id="skills" className="w-full h-[130vh] md:h-[calc(100dvh+100px)] pointer-events-none">
       <SectionHeader id='skills' title="Tech Stack" desc="(hint: press a key)" />
     </SectionWrapper>
   );

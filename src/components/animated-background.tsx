@@ -43,6 +43,7 @@ const AnimatedBackground = () => {
   const [keyboardRevealed, setKeyboardRevealed] = useState(false);
   const router = useRouter();
   const [pageVisible, setPageVisible] = useState(true);
+  const routerTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Track page visibility to pause heavy work when tab is hidden
   useEffect(() => {
@@ -152,20 +153,19 @@ const AnimatedBackground = () => {
         trigger: triggerId,
         start,
         end,
-        scrub: 0.5,
         onEnter: () => {
           setActiveSection(targetSection);
           const state = getKeyboardState({ section: targetSection, isMobile });
-          gsap.to(kbd.scale, { ...state.scale, duration: 1, ease: "power2.out" });
-          gsap.to(kbd.position, { ...state.position, duration: 1, ease: "power2.out" });
-          gsap.to(kbd.rotation, { ...state.rotation, duration: 1, ease: "power2.out" });
+          gsap.to(kbd.scale, { ...state.scale, duration: 1, ease: "power2.out", overwrite: true });
+          gsap.to(kbd.position, { ...state.position, duration: 1, ease: "power2.out", overwrite: true });
+          gsap.to(kbd.rotation, { ...state.rotation, duration: 1, ease: "power2.out", overwrite: true });
         },
         onLeaveBack: () => {
           setActiveSection(prevSection);
           const state = getKeyboardState({ section: prevSection, isMobile });
-          gsap.to(kbd.scale, { ...state.scale, duration: 1, ease: "power2.out" });
-          gsap.to(kbd.position, { ...state.position, duration: 1, ease: "power2.out" });
-          gsap.to(kbd.rotation, { ...state.rotation, duration: 1, ease: "power2.out" });
+          gsap.to(kbd.scale, { ...state.scale, duration: 1, ease: "power2.out", overwrite: true });
+          gsap.to(kbd.position, { ...state.position, duration: 1, ease: "power2.out", overwrite: true });
+          gsap.to(kbd.rotation, { ...state.rotation, duration: 1, ease: "power2.out", overwrite: true });
         },
       },
     });
@@ -198,11 +198,16 @@ const AnimatedBackground = () => {
       return { start: () => { }, stop: () => { } };
     }
 
-    let interval: NodeJS.Timeout;
-    const start = () => {
-      let i = 0;
-      framesParent.visible = true;
-      interval = setInterval(() => {
+    let animationFrameId: number;
+    let lastTime = 0;
+    let i = 0;
+    const animate = (time: number) => {
+      if (!pageVisible) {
+        animationFrameId = requestAnimationFrame(animate);
+        return;
+      }
+
+      if (time - lastTime > 120) {
         if (i % 2) {
           frame1.visible = false;
           frame2.visible = true;
@@ -211,10 +216,19 @@ const AnimatedBackground = () => {
           frame2.visible = false;
         }
         i++;
-      }, 200);
+        lastTime = time;
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    const start = () => {
+      framesParent.visible = true;
+      i = 0;
+      lastTime = document.timeline ? document.timeline.currentTime as number : performance.now();
+      animationFrameId = requestAnimationFrame(animate);
     };
     const stop = () => {
-      clearInterval(interval);
+      cancelAnimationFrame(animationFrameId);
       framesParent.visible = false;
       frame1.visible = false;
       frame2.visible = false;
@@ -241,10 +255,10 @@ const AnimatedBackground = () => {
           y: Math.random() * 150 + 150,
           duration: Math.random() * 1.5 + 1.5,
           delay: idx * 0.3,
-          repeat: -1,
-          yoyo: true,
-          yoyoEase: "none",
           ease: "power2.out",
+          yoyo: true,
+          repeat: -1,
+          yoyoEase: "none",
         });
         tweens.push(t);
       });
@@ -268,10 +282,20 @@ const AnimatedBackground = () => {
     return { start, stop };
   };
 
+  // Track timer IDs so they can be cleared on re-render / unmount
+  const revealTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const clearRevealTimers = useCallback(() => {
+    revealTimersRef.current.forEach(clearTimeout);
+    revealTimersRef.current = [];
+  }, []);
+
   const updateKeyboardTransform = useCallback(async () => {
     if (!splineApp) return;
     const kbd = splineApp.findObjectByName("keyboard");
     if (!kbd) return;
+
+    // Clear any in-flight reveal timers from a previous run
+    clearRevealTimers();
 
     kbd.visible = false;
     await sleep(300);
@@ -300,16 +324,17 @@ const AnimatedBackground = () => {
     } else {
       const desktopKeyCaps = allObjects.filter((obj) => obj.name === "keycap-desktop");
       desktopKeyCaps.forEach((keycap, idx) => {
-        setTimeout(() => {
+        const tid = setTimeout(() => {
           keycap.visible = true;
         }, idx * 70);
+        revealTimersRef.current.push(tid);
       });
     }
 
     keycaps.forEach((keycap, idx) => {
-      setTimeout(() => {
+      const outerTid = setTimeout(() => {
         keycap.visible = false;
-        setTimeout(() => {
+        const innerTid = setTimeout(() => {
           keycap.visible = true;
           gsap.fromTo(
             keycap.position,
@@ -317,9 +342,11 @@ const AnimatedBackground = () => {
             { y: 50, duration: 0.4, delay: 0.05, ease: "power2.out" }
           );
         }, 50);
+        revealTimersRef.current.push(innerTid);
       }, idx * 70);
+      revealTimersRef.current.push(outerTid);
     });
-  }, [splineApp, activeSection, isMobile]);
+  }, [splineApp, activeSection, isMobile, clearRevealTimers]);
 
   // --- Effects ---
 
@@ -420,63 +447,78 @@ const AnimatedBackground = () => {
       );
     }
 
-    const manageAnimations = async () => {
-      // Reset text if not in skills
-      if (activeSection !== "skills") {
-        try {
-          splineApp.setVariable("heading", "");
-          splineApp.setVariable("desc", "");
-        } catch (err) {
-          // Variable might not exist, ignore
+    let cancelled = false;
+    let bongoTimeout: ReturnType<typeof setTimeout>;
+    let contactTimeout: ReturnType<typeof setTimeout>;
+
+    // Reset text if not in skills
+    if (activeSection !== "skills") {
+      try {
+        splineApp.setVariable("heading", "");
+        splineApp.setVariable("desc", "");
+      } catch (err) {
+        // Variable might not exist, ignore
+      }
+    }
+
+    // Handle Rotate/Teardown Tweens
+    if (activeSection === "hero") {
+      rotateKeyboard?.restart();
+      teardownKeyboard?.pause();
+    } else if (activeSection === "contact") {
+      rotateKeyboard?.pause();
+    } else {
+      rotateKeyboard?.pause();
+      teardownKeyboard?.pause();
+    }
+
+    // Handle Bongo Cat
+    if (activeSection === "projects") {
+      bongoTimeout = setTimeout(() => {
+        if (!cancelled) bongoAnimationRef.current?.start();
+      }, 200);
+    } else {
+      bongoAnimationRef.current?.stop();
+    }
+
+    // Handle Contact Section Animations
+    if (activeSection === "contact") {
+      contactTimeout = setTimeout(() => {
+        if (!cancelled) {
+          teardownKeyboard?.restart();
+          keycapAnimationsRef.current?.start();
         }
-      }
-
-      // Handle Rotate/Teardown Tweens
-      if (activeSection === "hero") {
-        rotateKeyboard?.restart();
-        teardownKeyboard?.pause();
-      } else if (activeSection === "contact") {
-        rotateKeyboard?.pause();
-      } else {
-        rotateKeyboard?.pause();
-        teardownKeyboard?.pause();
-      }
-
-      // Handle Bongo Cat - reduce delay for faster response
-      if (activeSection === "projects") {
-        await sleep(200);
-        bongoAnimationRef.current?.start();
-      } else {
-        bongoAnimationRef.current?.stop();
-      }
-
-      // Handle Contact Section Animations - reduce delay
-      if (activeSection === "contact") {
-        await sleep(300);
-        teardownKeyboard?.restart();
-        keycapAnimationsRef.current?.start();
-      } else {
-        keycapAnimationsRef.current?.stop();
-        teardownKeyboard?.pause();
-      }
-    };
-
-    manageAnimations();
+      }, 300);
+    } else {
+      keycapAnimationsRef.current?.stop();
+      teardownKeyboard?.pause();
+    }
 
     return () => {
+      cancelled = true;
+      clearTimeout(bongoTimeout);
+      clearTimeout(contactTimeout);
       rotateKeyboard?.kill();
       teardownKeyboard?.kill();
     };
   }, [activeSection, splineApp, pageVisible]);
 
-  // Reveal keyboard on load/route change
+  // Reveal keyboard on load/route change — debounce the router.push to avoid
+  // firing Next.js navigation on every scroll frame
   useEffect(() => {
-    const hash = activeSection === "hero" ? "#" : `#${activeSection}`;
-    router.push("/" + hash, { scroll: false });
+    clearTimeout(routerTimeoutRef.current);
+    routerTimeoutRef.current = setTimeout(() => {
+      const hash = activeSection === "hero" ? "#" : `#${activeSection}`;
+      window.history.replaceState(null, "", "/" + hash);
+    }, 300);
 
     if (!splineApp || isLoading || keyboardRevealed) return;
     updateKeyboardTransform();
-  }, [splineApp, isLoading, activeSection, keyboardRevealed, updateKeyboardTransform, router]);
+    return () => {
+      clearTimeout(routerTimeoutRef.current);
+      clearRevealTimers();
+    };
+  }, [splineApp, isLoading, activeSection, keyboardRevealed, updateKeyboardTransform, clearRevealTimers]);
 
   return (
     <Suspense fallback={<div className="w-full h-full fixed" />}>

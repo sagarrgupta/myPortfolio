@@ -83,6 +83,7 @@ export const BoxReveal = ({
         initial="hidden"
         animate={mainControls}
         transition={{ duration: duration ? duration : 0.5, delay }}
+        style={{ willChange: "transform, opacity" }}
       >
         {children}
       </motion.div>

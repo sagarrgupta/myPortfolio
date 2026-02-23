@@ -20,7 +20,7 @@ const ContactSection = () => {
           LET&apos;S WORK <br />
           TOGETHER
         </>} />
-      <div className="grid grid-cols-1 md:grid-cols-2 z-[9999] mx-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 mx-4 md:mx-6">
         <Card className="min-w-7xl bg-white/70 dark:bg-black/70 backdrop-blur-sm rounded-xl mt-8 md:mt-12">
           <CardHeader>
             <CardTitle className="text-4xl">Contact Form</CardTitle>

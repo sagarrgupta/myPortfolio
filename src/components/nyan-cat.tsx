@@ -29,7 +29,7 @@ const NyanCat = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  });
+  }, []);
 
   return (
     <div className="fixed left-0 top-0 w-screen h-screen overflow-hidden z-[5] pointer-events-none">
@@ -40,7 +40,7 @@ const NyanCat = () => {
             id={div.id}
             onClick={() => console.log("clicked")}
             onCompleted={() => {
-              setDivs(divs.filter((d) => d.id !== div.id));
+              setDivs(prev => prev.filter((d) => d.id !== div.id));
             }}
           />
         ))}

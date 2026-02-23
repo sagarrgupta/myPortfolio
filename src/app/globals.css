@@ -100,7 +100,12 @@ body {
   .canvas-overlay-mode h5,
   .canvas-overlay-mode h6,
   .canvas-overlay-mode span,
-  .canvas-overlay-mode svg {
+  .canvas-overlay-mode svg,
+  .canvas-overlay-mode img,
+  .canvas-overlay-mode li,
+  .canvas-overlay-mode form,
+  .canvas-overlay-mode nav,
+  .canvas-overlay-mode video {
     pointer-events: auto;
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 type useMouseType = {
   allowPage?: boolean;
@@ -6,32 +6,39 @@ type useMouseType = {
   allowAcc?: boolean;
 };
 
+/**
+ * High-performance mouse hook.
+ * Returns a stable ref object that is mutated in-place — no React re-renders.
+ * Components using this should read from the ref in an animation loop (rAF / gsap.ticker).
+ */
 export const useMouse = ({
   allowPage,
   allowAngle,
   allowAcc,
 }: useMouseType = {}) => {
-  const [x, setX] = useState(0);
-  const [y, setY] = useState(0);
-  const [angle, setAngle] = useState(0);
-  const [acceleration, setAcceleration] = useState(0);
+  const state = useRef({ x: 0, y: 0, angle: 0, acceleration: 0 });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setX(allowPage ? e.pageX : e.clientX);
-      setY(allowPage ? e.pageY : e.clientY);
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      state.current.x = allowPage ? e.pageX : e.clientX;
+      state.current.y = allowPage ? e.pageY : e.clientY;
 
       if (allowAcc) {
-        const acc = Math.abs(e.movementX) + Math.abs(e.movementY);
-        setAcceleration(acc);
+        state.current.acceleration =
+          Math.abs(e.movementX) + Math.abs(e.movementY);
       }
       if (allowAngle) {
-        setAngle(Math.atan2(e.movementY, e.movementX));
+        state.current.angle = Math.atan2(e.movementY, e.movementX);
       }
-    };
-    if (typeof window !== "undefined")
-      window.addEventListener("mousemove", handleMouseMove);
+    },
+    [allowPage, allowAngle, allowAcc]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [allowPage, allowAngle, allowAcc]);
-  return { x, y, angle, acceleration };
+  }, [handleMouseMove]);
+
+  return state.current;
 };
