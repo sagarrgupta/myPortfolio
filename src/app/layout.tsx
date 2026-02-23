@@ -8,6 +8,7 @@ import Footer from "@/components/footer/footer";
 import Script from "next/script";
 import AppOverlays from "@/components/app-overlays";
 import { Providers } from "@/components/providers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: config.title,
@@ -78,6 +79,7 @@ export default function RootLayout({
           <Footer />
           <AppOverlays />
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
