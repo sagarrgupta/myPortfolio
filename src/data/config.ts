@@ -27,7 +27,7 @@ const config = {
   ],
   author: "Sagar Gupta",
   email: "gsr1745@gmail.com",
-  site: "https://sagarrgupta.com",
+  site: "https://www.sagarrgupta.com",
 
   // GitHub stars button in header
   githubUsername: "sagarrgupta",
