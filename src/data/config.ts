@@ -2,7 +2,7 @@ const config = {
   title: "Sagar Gupta | AI/ML & iOS Engineer",
   description: {
     long:
-      "Sagar Gupta — AI/ML & iOS engineer who ships at scale. Built enterprise ML pipelines (1,000+ docs, fine-tuned models) and conversational AI with RAG; led 15+ iOS features for 35M+ users at Nykaa; shipped real-time messaging, Zoom SDK, and payment integrations at Appscrip. Expert in Databricks, LangChain, Swift/SwiftUI, and production-grade backends.",
+      "AI/ML & iOS engineer who ships at scale. Built enterprise ML pipelines (1,000+ docs, fine-tuned models) and conversational AI with RAG; led 15+ iOS features for 35M+ users at Nykaa; shipped real-time messaging, Zoom SDK, and payment integrations at Appscrip. Expert in Databricks, LangChain, Swift/SwiftUI, and production-grade backends.",
     short:
       "AI/ML & iOS engineer — enterprise ML pipelines, RAG agents, and iOS apps at 35M+ scale. Python, Swift, LangChain.",
   },
