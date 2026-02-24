@@ -38,6 +38,7 @@ export enum SkillNames {
   CRASHLYTICS = "crashlytics",
   STRIPE = "stripe",
   TAILWIND = "tailwind",
+  BITBUCKET = "bitbucket",
 }
 export type Skill = {
   id: number;
@@ -374,6 +375,14 @@ export const SKILLS: Record<SkillNames, Skill> = {
     color: "#06B6D4",
     icon: "https://cdn.simpleicons.org/tailwindcss/06B6D4",
   },
+  [SkillNames.BITBUCKET]: {
+    id: 39,
+    name: "bitbucket",
+    label: "Bitbucket",
+    shortDescription: "Git repository hosting and collaboration for version control and CI/CD.",
+    color: "#0052CC",
+    icon: "https://cdn.simpleicons.org/bitbucket/0052CC",
+  },
 };
 
 /** Keyboard keycap order (4 rows × 6). Spline keycap object names must match each skill's `name`. */
@@ -482,6 +491,7 @@ export const EXPERIENCE: Experience[] = [
       SkillNames.ZOOM_SDK,
       SkillNames.PAYMENT_INTEGRATION,
       SkillNames.BITRISE,
+      SkillNames.BITBUCKET,
     ],
   },
 ];
