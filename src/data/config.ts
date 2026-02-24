@@ -27,7 +27,7 @@ const config = {
   ],
   author: "Sagar Gupta",
   email: "gsr1745@gmail.com",
-  site: "https://example.com", // Update to your live portfolio URL (e.g. https://yourname.vercel.app)
+  site: "https://sagarrgupta.com",
 
   // GitHub stars button in header
   githubUsername: "sagarrgupta",
