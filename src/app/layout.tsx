@@ -3,9 +3,9 @@ import { Inter, Archivo_Black } from "next/font/google";
 import "./globals.css";
 import { config } from "@/data/config";
 
+import Script from "next/script";
 import Header from "@/components/header/header";
 import Footer from "@/components/footer/footer";
-import Script from "next/script";
 import AppOverlays from "@/components/app-overlays";
 import { Providers } from "@/components/providers";
 
@@ -51,6 +51,8 @@ const archivoBlack = Archivo_Black({
   variable: "--font-display",
 });
 
+const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID;
+
 export default function RootLayout({
   children,
 }: {
@@ -71,6 +73,22 @@ export default function RootLayout({
             src={process.env.UMAMI_DOMAIN}
             data-website-id={process.env.UMAMI_SITE_ID}
           />
+        )}
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
         )}
         <Providers>
           <Header />
