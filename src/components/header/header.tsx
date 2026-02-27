@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { config } from "@/data/config";
 import OnlineUsers from "../realtime/online-users";
 import { GitHubStarsButton } from "../ui/shadcn-io/github-stars-button";
+import { trackEvent } from "@/lib/analytics";
 
 interface HeaderProps {
   loader?: boolean;
@@ -81,7 +82,11 @@ const Header = ({ loader }: HeaderProps) => {
           <Button
             variant={"ghost"}
             size="sm"
-            onClick={() => setIsActive(!isActive)}
+            onClick={() => {
+              const next = !isActive;
+              trackEvent("button_click", { button_name: "nav_menu", button_location: "header", open: next });
+              setIsActive(next);
+            }}
             className={cn(
               styles.el,
               "!m-0 !p-0 !h-8 !min-h-0 !py-1.5 !px-2 bg-transparent flex items-center justify-center rounded-md"

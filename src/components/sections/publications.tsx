@@ -13,11 +13,10 @@ import {
   Modal,
   ModalBody,
   ModalContent,
-  ModalFooter,
   ModalTrigger,
-  useModal,
 } from "../ui/animated-modal";
 import { Button } from "../ui/button";
+import { trackEvent } from "@/lib/analytics";
 import { SkillNames, SKILLS } from "@/data/constants";
 
 type Publication = {
@@ -111,6 +110,8 @@ const PublicationsSection = React.memo(() => {
             <Modal>
               <ModalTrigger className="block w-full text-left bg-transparent border-none p-0 cursor-pointer">
                 <motion.div
+                  onClick={() => trackEvent("publication_tile_click", { publication_title: publication.title })}
+                  role="presentation"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.08, ease: "easeOut" }}
@@ -158,7 +159,10 @@ const PublicationsSection = React.memo(() => {
                         href={publication.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          trackEvent("publication_link_click", { link: "ieee", location: "outside_tile", publication_title: publication.title });
+                        }}
                         className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400 group-hover:underline"
                       >
                         Read on IEEE
@@ -284,6 +288,7 @@ const PublicationContents = ({
           href={publication.link}
           rel="noopener noreferrer"
           target="_blank"
+          onClick={() => trackEvent("publication_link_click", { link: "ieee", location: "inside_modal", publication_title: publication.title })}
         >
           <Button variant="default" size="sm">
             Visit on IEEE
@@ -296,6 +301,7 @@ const PublicationContents = ({
             href={publication.github}
             rel="noopener noreferrer"
             target="_blank"
+            onClick={() => trackEvent("publication_link_click", { link: "github", location: "inside_modal", publication_title: publication.title })}
           >
             <Button variant="default" size="sm">
               GitHub

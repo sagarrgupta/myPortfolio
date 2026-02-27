@@ -52,6 +52,8 @@ const archivoBlack = Archivo_Black({
 });
 
 const GA_MEASUREMENT_ID = process.env.GA_MEASUREMENT_ID;
+/** Name shown in GA4 reports (Admin → Custom definitions → create dimension with parameter `site_name`) */
+const GA_SITE_NAME = "Portfolio_visits";
 
 export default function RootLayout({
   children,
@@ -84,8 +86,12 @@ export default function RootLayout({
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
                 gtag('js', new Date());
-                gtag('config', '${GA_MEASUREMENT_ID}');
+                gtag('config', '${GA_MEASUREMENT_ID}', {
+                  custom_map: { dimension1: 'site_name' },
+                  site_name: '${GA_SITE_NAME}'
+                });
               `}
             </Script>
           </>

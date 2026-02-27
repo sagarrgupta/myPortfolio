@@ -14,6 +14,7 @@ import { Button } from "../ui/button";
 import { FloatingDock } from "../ui/floating-dock";
 
 import projects, { Project } from "@/data/projects";
+import { trackEvent } from "@/lib/analytics";
 import { SectionHeader } from "./section-header";
 import SectionWrapper from "../ui/section-wrapper";
 
@@ -63,6 +64,9 @@ const ProjectCardModal = React.memo(({ project }: { project: Project }) => {
           <div
             className="relative w-full min-w-[100px] h-auto rounded-lg shadow-lg"
             style={{ aspectRatio: "3/2" }}
+            onClick={() => trackEvent("project_tile_click", { project_title: project.title, project_id: project.id ?? project.title })}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") trackEvent("project_tile_click", { project_title: project.title, project_id: project.id ?? project.title }); }}
+            role="presentation"
           >
             <div className="absolute inset-0 rounded-lg overflow-hidden">
               <Image

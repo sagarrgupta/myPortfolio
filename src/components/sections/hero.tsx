@@ -13,6 +13,7 @@ import { BlurIn, BoxReveal } from "../reveal-animations";
 import ScrollDownIcon from "../scroll-down-icon";
 import { SiGithub, SiInstagram, SiLinkedin } from "react-icons/si";
 import { config } from "@/data/config";
+import { trackEvent } from "@/lib/analytics";
 
 import SectionWrapper from "../ui/section-wrapper";
 
@@ -109,6 +110,7 @@ const HeroSection = React.memo(() => {
                   }
                   target="_blank"
                   className="flex-1 cursor-can-hover block w-full"
+                  onClick={() => trackEvent("button_click", { button_name: "resume", button_location: "hero", link_url: "resume_pdf" })}
                 >
                   <BoxReveal delay={2} width="100%" >
                     <Button cursorCanHover={false} className="flex items-center gap-2 w-full">
@@ -120,7 +122,10 @@ const HeroSection = React.memo(() => {
                 <div className="md:self-start flex gap-3">
                   <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
-                      <Link href={"#contact"}>
+                      <Link
+                        href={"#contact"}
+                        onClick={() => trackEvent("button_click", { button_name: "hire_me", button_location: "hero" })}
+                      >
                         <Button
                           variant={"outline"}
                           className="block w-full overflow-hidden"
@@ -137,6 +142,7 @@ const HeroSection = React.memo(() => {
                     <Link
                       href={config.social.instagram}
                       target="_blank"
+                      onClick={() => trackEvent("button_click", { button_name: "instagram", button_location: "hero", link_url: config.social.instagram })}
                     >
                       <Button variant={"outline"}>
                         <SiInstagram size={24} />
@@ -146,6 +152,7 @@ const HeroSection = React.memo(() => {
                       href={config.social.github}
                       target="_blank"
                       className="cursor-can-hover"
+                      onClick={() => trackEvent("button_click", { button_name: "github", button_location: "hero", link_url: config.social.github })}
                     >
                       <Button variant={"outline"}>
                         <SiGithub size={24} />
@@ -155,6 +162,7 @@ const HeroSection = React.memo(() => {
                       href={config.social.linkedin}
                       target="_blank"
                       className="cursor-can-hover"
+                      onClick={() => trackEvent("button_click", { button_name: "linkedin", button_location: "hero", link_url: config.social.linkedin })}
                     >
                       <Button variant={"outline"}>
                         <SiLinkedin size={24} />

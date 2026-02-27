@@ -11,6 +11,7 @@ import {
 } from 'motion/react';
 
 import { cn } from '@/lib/utils';
+import { trackEvent } from '@/lib/analytics';
 import { SlidingNumber } from '../sliding-number';
 import { Fragment, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
@@ -132,6 +133,7 @@ function GitHubStarsButton({
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
+      trackEvent('button_click', { button_name: 'github_stars', button_location: 'header', link_url: repoUrl });
       handleDisplayParticles();
       setTimeout(() => window.open(repoUrl, '_blank'), 500);
     },

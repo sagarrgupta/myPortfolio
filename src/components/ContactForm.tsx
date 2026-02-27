@@ -7,6 +7,7 @@ import { Textarea } from "./ui/ace-textarea";
 import { cn } from "@/lib/utils";
 import { useToast } from "./ui/use-toast";
 import { Button } from "./ui/button";
+import { trackEvent } from "@/lib/analytics";
 
 const MESSAGE_MAX_LENGTH = 1000;
 const MESSAGE_MIN_LENGTH = 2;
@@ -31,6 +32,7 @@ const ContactForm = () => {
       return;
     }
     setLoading(true);
+    trackEvent("form_submit", { form_name: "contact", button_name: "send_message" });
     try {
       const payload = {
         fullName: fullName.trim().replace(/\0/g, "").slice(0, 200),
