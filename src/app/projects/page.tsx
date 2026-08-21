@@ -13,7 +13,7 @@ const PROJECTS = [
   {
     id: 1,
     name: "Pathfinder – AI Agent for Academic Guidance",
-    description: `Multi-agent AI assistant for academic and career guidance built with an 11-node LangGraph system, FastAPI backend, and hybrid graph + vector retrieval in Neo4j.`,
+    description: `Architected an MCP-style AI agent system with 38 tools for graph retrieval, vector search, web access, and data operations, orchestrated through an 8-node LangGraph workflow. Built a production-grade FastAPI backend with server-sent events supporting 5+ concurrent sessions with less than 500 millisecond response time.`,
     link: "#",
     images: ["/assets/projects-screenshots/portfolio/pathfinder.png"],
     imagesLight: ["/assets/projects-screenshots/portfolio/pathfinder-light.png"],

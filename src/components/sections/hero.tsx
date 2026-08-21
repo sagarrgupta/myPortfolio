@@ -99,7 +99,7 @@ const HeroSection = React.memo(() => {
                       "cursor-default font-display sm:text-xl md:text-xl max-w-[250px] md:max-w-none break-words bg-clip-text "
                     )}
                   >
-                    AI/ML & iOS Engineer
+                    iOS Engineer
                   </p>
                 </BlurIn>
               </div>
@@ -124,18 +124,18 @@ const HeroSection = React.memo(() => {
                     <TooltipTrigger asChild>
                       <Link
                         href={"#contact"}
-                        onClick={() => trackEvent("button_click", { button_name: "hire_me", button_location: "hero" })}
+                        onClick={() => trackEvent("button_click", { button_name: "connect", button_location: "hero" })}
                       >
                         <Button
                           variant={"outline"}
                           className="block w-full overflow-hidden"
                         >
-                          Hire Me
+                          Connect
                         </Button>
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
-                      <p>pls 🥹 🙏</p>
+                      <p>Open to new conversations</p>
                     </TooltipContent>
                   </Tooltip>
                   <div className="flex items-center h-full gap-2">

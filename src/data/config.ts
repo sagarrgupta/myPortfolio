@@ -1,10 +1,10 @@
 const config = {
-  title: "Sagar Gupta | AI/ML & iOS Engineer",
+  title: "Sagar Gupta | iOS Engineer",
   description: {
     long:
-      "AI/ML & iOS engineer who ships at scale. Built enterprise ML pipelines (1,000+ docs, fine-tuned models) and conversational AI with RAG; led 15+ iOS features for 35M+ users at Nykaa; shipped real-time messaging, Zoom SDK, and payment integrations at Appscrip. Expert in Databricks, LangChain, Swift/SwiftUI, and production-grade backends.",
+      "iOS Engineer who ships at scale. Built enterprise ML pipelines (1,000+ docs, fine-tuned models) and conversational AI with RAG; led 15+ iOS features for 35M+ users at Nykaa; shipped real-time messaging, Zoom SDK, and payment integrations at Appscrip. Expert in Databricks, LangChain, Swift/SwiftUI, and production-grade backends.",
     short:
-      "AI/ML & iOS engineer — enterprise ML pipelines, RAG agents, and iOS apps at 35M+ scale. Python, Swift, LangChain.",
+      "iOS Engineer — enterprise ML pipelines, RAG agents, and iOS apps at 35M+ scale. Python, Swift, LangChain.",
   },
   keywords: [
     "Sagar Gupta",
@@ -49,7 +49,7 @@ const config = {
     "MQTT",
   ],
   author: "Sagar Gupta",
-  email: "gsr1745@gmail.com",
+  email: "isagarrgupta@gmail.com",
   site: "https://www.sagarrgupta.com",
 
   // GitHub stars button in header

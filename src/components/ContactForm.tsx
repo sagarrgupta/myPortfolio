@@ -97,7 +97,7 @@ const ContactForm = () => {
         <Label htmlFor="content">Your Message</Label>
         <div className="relative">
           <Textarea
-            placeholder="I would like to discuss a job opportunity with you... 😉"
+            placeholder="Please share a brief note about your inquiry or how I can be of assistance."
             id="content"
             required
             minLength={MESSAGE_MIN_LENGTH}

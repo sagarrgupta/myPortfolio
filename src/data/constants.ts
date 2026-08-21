@@ -430,6 +430,19 @@ export type Experience = {
 export const EXPERIENCE: Experience[] = [
   {
     id: 1,
+    startDate: "Jul 2026",
+    endDate: "Present",
+    title: "Graduate Student Assistant (GenAI)",
+    company: "California Department of Motor Vehicles",
+    description: [
+      "Led technical planning for 2+ generative artificial intelligence initiatives, defining standards for RAG, agentic workflows, and prompt engineering.",
+      "Evaluated 3 large language models and retrieval strategies across accuracy, latency, and scalability.",
+      "Partnered with 4+ stakeholders and teams to translate business requirements into scalable artificial intelligence solutions.",
+    ],
+    skills: [SkillNames.PYTHON],
+  },
+  {
+    id: 2,
     startDate: "Jun 2025",
     endDate: "Oct 2025",
     title: "AI/ML Engineer Intern",
@@ -450,7 +463,7 @@ export const EXPERIENCE: Experience[] = [
     ],
   },
   {
-    id: 2,
+    id: 3,
     startDate: "May 2022",
     endDate: "Jul 2024",
     title: "Senior Software Engineer II (iOS)",
@@ -473,7 +486,7 @@ export const EXPERIENCE: Experience[] = [
     ],
   },
   {
-    id: 3,
+    id: 4,
     startDate: "Feb 2020",
     endDate: "Apr 2022",
     title: "iOS Developer",

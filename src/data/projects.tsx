@@ -296,7 +296,7 @@ const projects: Project[] = [
             AI agent platform for academic and career guidance with multi-agent orchestration.
           </TypographyP>
           <TypographyP className="font-mono ">
-            Architected an 11-node LangGraph multi-agent system with an orchestrator routing to 4 specialist agents, achieving 90% user satisfaction. Built a production-grade FastAPI backend with server-sent events (SSE) handling 5+ concurrent sessions with less than 500ms response time.
+            Architected an MCP-style AI agent system with 38+ tools for graph retrieval, vector search, web access, and data operations, orchestrated through an 8-node LangGraph workflow. Built a production-grade FastAPI backend with server-sent events supporting 5+ concurrent sessions with less than 500 millisecond response time.
           </TypographyP>
           <ProjectsLinks live={this.live} repo={this.github} />
           <TypographyH3 className="my-4 mt-8">Key Features</TypographyH3>
