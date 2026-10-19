@@ -39,6 +39,10 @@ export enum SkillNames {
   STRIPE = "stripe",
   TAILWIND = "tailwind",
   BITBUCKET = "bitbucket",
+  JUPYTERHUB = "jupyterhub",
+  QUALTRICS = "qualtrics",
+  RAG = "rag",
+  AGENTIC_WORKFLOW = "agentic-workflow",
 }
 export type Skill = {
   id: number;
@@ -383,6 +387,38 @@ export const SKILLS: Record<SkillNames, Skill> = {
     color: "#0052CC",
     icon: "https://cdn.simpleicons.org/bitbucket/0052CC",
   },
+  [SkillNames.JUPYTERHUB]: {
+    id: 40,
+    name: "jupyterhub",
+    label: "JupyterHub",
+    shortDescription: "Multi-user notebook environments for teaching and research computing.",
+    color: "#F37626",
+    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jupyter/jupyter-original.svg",
+  },
+  [SkillNames.QUALTRICS]: {
+    id: 41,
+    name: "qualtrics",
+    label: "Qualtrics",
+    shortDescription: "Survey design and research data collection with Qualtrics.",
+    color: "#00B4EF",
+    icon: "https://cdn.simpleicons.org/qualtrics/00B4EF",
+  },
+  [SkillNames.RAG]: {
+    id: 43,
+    name: "rag",
+    label: "RAG",
+    shortDescription: "Retrieval-augmented generation for grounding language model responses.",
+    color: "#22C55E",
+    icon: "/assets/skills/retrieval.svg",
+  },
+  [SkillNames.AGENTIC_WORKFLOW]: {
+    id: 44,
+    name: "agentic-workflow",
+    label: "Agentic Workflow",
+    shortDescription: "Multi-step AI workflows that coordinate reasoning and tools.",
+    color: "#A78BFA",
+    icon: "/assets/skills/workflow.svg",
+  },
 };
 
 /** Keyboard keycap order (4 rows × 6). Spline keycap object names must match each skill's `name`. */
@@ -429,9 +465,27 @@ export type Experience = {
 
 export const EXPERIENCE: Experience[] = [
   {
+    id: 5,
+    startDate: "Aug 2026",
+    endDate: "Present",
+    title: "Research Computing Intern",
+    company: "California State University-Sacramento",
+    description: [
+      "Supported JupyterHub for 30+ students, improving configuration, access, reliability, and scalability.",
+      "Evaluated JupyterHub, JupyterLite, and NBGrader for scalable university computing environments.",
+      "Contributed to 2+ research computing initiatives, exploring ACCESS, NAIRR, and Jupyter-based infrastructure.",
+      "Collaborated across 3+ IT and research teams, presenting findings and identifying infrastructure best practices.",
+    ],
+    skills: [
+      SkillNames.JUPYTERHUB,
+      SkillNames.QUALTRICS,
+      SkillNames.KUBERNETES,
+    ],
+  },
+  {
     id: 1,
     startDate: "Jul 2026",
-    endDate: "Present",
+    endDate: "Sep 2026",
     title: "Graduate Student Assistant (GenAI)",
     company: "California Department of Motor Vehicles",
     description: [
@@ -439,7 +493,11 @@ export const EXPERIENCE: Experience[] = [
       "Evaluated 3 large language models and retrieval strategies across accuracy, latency, and scalability.",
       "Partnered with 4+ stakeholders and teams to translate business requirements into scalable artificial intelligence solutions.",
     ],
-    skills: [SkillNames.PYTHON],
+    skills: [
+      SkillNames.PYTHON,
+      SkillNames.RAG,
+      SkillNames.AGENTIC_WORKFLOW,
+    ],
   },
   {
     id: 2,

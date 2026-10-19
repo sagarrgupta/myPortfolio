@@ -5,6 +5,7 @@ import confetti from 'canvas-confetti';
 import { RadialMenuPresentational } from './radial-menu-presentational';
 import { MenuItem, Position } from './types';
 import { SocketContext } from '@/contexts/socketio';
+import { trackEvent } from '@/lib/analytics';
 
 // Define our menu items
 const MENU_ITEMS: MenuItem[] = [
@@ -73,6 +74,12 @@ export default function RadialMenu() {
   const triggerConfetti = (x: number, y: number, item: MenuItem) => {
     // 1. Trigger Locally using Page Coordinates
     fireConfetti(x, y, item.emoji);
+    trackEvent('button_click', {
+      button_name: 'emoji_trigger',
+      button_location: 'radial_menu',
+      emoji: item.emoji,
+      emoji_name: item.id,
+    });
   };
 
   // Listen for remote confetti

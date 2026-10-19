@@ -6,10 +6,12 @@ import RemoteCursors from "@/components/realtime/remote-cursors";
 import EasterEggs from "@/components/easter-eggs";
 import ElasticCursor from "@/components/ui/ElasticCursor";
 import RadialMenu from "@/components/radial-menu/index";
+import WelcomeToast from "@/components/welcome-toast";
 
 export default React.memo(function AppOverlays() {
   return (
     <>
+      <WelcomeToast />
       <Particles
         className="fixed inset-0 -z-10 animate-fade-in"
         quantity={50}

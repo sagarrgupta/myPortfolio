@@ -25,11 +25,17 @@ export function Toaster() {
               )}
             </div>
             {action}
-            <ToastClose />
+            {props.variant !== "hint" && <ToastClose />}
           </Toast>
         )
       })}
-      <ToastViewport />
+      <ToastViewport
+        className={
+          toasts.some((toast) => toast.variant === "hint")
+            ? "left-4 w-auto max-w-[calc(100vw-2rem)] translate-x-0 p-0"
+            : undefined
+        }
+      />
     </ToastProvider>
   )
 }
