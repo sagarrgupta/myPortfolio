@@ -106,7 +106,7 @@ const HeroSection = React.memo(() => {
               <div className="mt-8 flex flex-col gap-3 w-fit">
                 <Link
                   href={
-                    "https://drive.google.com/file/d/1qaRDYigSi8EeqhBufCys7hhpuya9pU6P/view?usp=sharing"
+                    "https://drive.google.com/file/d/1NPKYlaGNPjJWHl08-s4Xn3Ey7RekhBfY/view?usp=sharing"
                   }
                   target="_blank"
                   className="flex-1 cursor-can-hover block w-full"
